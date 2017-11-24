@@ -25,7 +25,8 @@ public class SocketHandler implements Runnable {
                 SocketPull.getInstance().sendMessage(message);
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("Клиент отключился");
+            //e.printStackTrace();
         }
     }
 
