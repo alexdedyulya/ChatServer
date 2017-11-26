@@ -24,7 +24,7 @@ public class SocketHandler implements Runnable {
                 if (!messageRequest.isOnline()) {
                     SocketPull.getInstance().setOffline(id, messageRequest);
                 }
-                if (messageRequest.getText() == null) {
+                else if (messageRequest.getText() == null) {
                     SocketPull.getInstance().setUsername(messageRequest);
                 }
                 SocketPull.getInstance().sendMessage(messageRequest);
