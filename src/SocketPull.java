@@ -1,7 +1,7 @@
 import java.io.IOException;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by Alex on 22.11.2017.
@@ -10,7 +10,8 @@ public class SocketPull {
 
     private static volatile SocketPull instance;
 
-    private volatile List<SocketHandler> handlers = new ArrayList<>();
+    private volatile Map<String, SocketHandler> handlers = new HashMap<>();
+    private Set<String> users = ConcurrentHashMap.newKeySet();
 
 
     private SocketPull() {
@@ -25,15 +26,29 @@ public class SocketPull {
     }
 
     public void add(Socket socket) throws IOException {
-        SocketHandler handler = new SocketHandler(socket);
-        handlers.add(handler);
+        String id = UUID.randomUUID().toString();
+        SocketHandler handler = new SocketHandler(id, socket);
+        handlers.put(id, handler);
         Thread socketThread = new Thread(handler);
         socketThread.setDaemon(true);
         socketThread.start();
     }
 
-    public void sendMessage(String message) {
-        handlers.forEach(socketHandler -> socketHandler.sendMessage(message));
+    public void sendMessage(MessageRequest message) {
+        handlers.values().forEach(socketHandler -> socketHandler.sendMessage(message));
+    }
+
+    public void setOffline(String id, MessageRequest message) {
+        handlers.remove(id);
+        users.remove(message.getUsername());
+        message.setUsers(new HashSet<>(users));
+        handlers.values().forEach(socketHandler -> socketHandler.sendMessage(message));
+    }
+
+    public void setUsername(MessageRequest message) {
+        users.add(message.getUsername());
+        message.setUsers(new HashSet<>(users));
+        handlers.values().forEach(socketHandler -> socketHandler.sendMessage(message));
     }
 
 }
